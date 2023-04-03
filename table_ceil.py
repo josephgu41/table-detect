@@ -12,6 +12,8 @@ from table_detect import table_detect
 from table_line import table_line
 from table_build import tableBuid,to_excel
 from utils import minAreaRectbox, measure, eval_angle, draw_lines
+# from chineseocr_lite.test import ChineseOcr
+
 
 class table:
     def __init__(self, img, tableSize=(416, 416), tableLineSize=(1024, 1024), isTableDetect=False, isToExcel=False):
@@ -23,6 +25,8 @@ class table:
         self.img_degree()
         self.table_boxes_detect()  ##表格定位
         self.table_ceil()  ##表格单元格定位
+        
+        # self.ocr = self.table_ocr()  # yby_edit
 
         self.table_build()
 
@@ -75,6 +79,7 @@ class table:
         cor = tablebuild.cor
         for line in cor:
             line['text'] = 'table-test'##ocr
+            # line['text'] = self.ocr[i]
         if self.isToExcel:
             workbook = to_excel(cor, workbook=None)
         else:
@@ -85,7 +90,30 @@ class table:
 
     def table_ocr(self):
         """use ocr and match ceil"""
-        pass
+        res = []
+        tablebuild = tableBuid(self.tableCeilBoxes)
+        for box in tablebuild.diagBoxes:
+
+            # 获取表格的左上角和右下角坐标
+            x1, y1, x2, y2 = box[0],box[1],box[2],box[3]
+            # 截取表格部分的图片
+            table_img = self.img[y1:y2, x1:x2]
+
+            cv2.imwrite('./img_temp/cropped.png', table_img)
+            img = "./img_temp/cropped.png"
+        
+            x = ChineseOcr(img)
+        
+            if x:
+                txt = ""
+                for i in range(len(x)):
+                    txt = txt + " " + x[i]["text"]
+                res.append(txt[1:])
+            else:
+                res.append(" ")
+                
+        # print(res)
+        return res
 
 
 
