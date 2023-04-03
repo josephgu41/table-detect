@@ -1,10 +1,23 @@
+# table-detect
 opencv-contrib-python==4.0.0.21
 pillow
 h5py
 scipy
 numpy
-tensorflow-gpu==2.5
+tensorflow-gpu==2.3.3
 scikit-learn
 matplotlib
 scikit-image
 xlwt
+
+# ocr
+opencv-python
+Cython
+web.py==0.40.dev0
+torch==1.4.0
+torchvision==0.5.0
+onnxruntime
+pyclipper
+shapely
+flask
+flask-restful
