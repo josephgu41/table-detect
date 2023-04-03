@@ -19,3 +19,4 @@ dump.rdb
 define
 img/
 train/dataset-line/
+img_temp/
