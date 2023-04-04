@@ -6,10 +6,10 @@ father_path = os.path.abspath(os.path.dirname(filt_path) + os.path.sep + ".")
 GPU_ID = 1 # "cpu"
 
 # psenet相关
-pse_long_size = 960  # 图片长边
-dbnet_short_size = 960
-det_model_type = "pse_mobilenetv2"
-# det_model_type = "dbnet"
+pse_long_size = 320  # 图片长边 960
+dbnet_short_size = 480 # 960
+# det_model_type = "pse_mobilenetv2"
+det_model_type = "dbnet"
 pse_scale = 1
 
 if det_model_type == "pse_mobilenetv2":
