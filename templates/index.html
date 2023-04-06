@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <h1>OCR App</h1>
+    <form action="/upload_image" method="post" enctype="multipart/form-data">
+      <input type="file" name="image" accept="image/*">
+      <input type="submit" value="Upload Image">
+    </form>
+    <form action="/process_image" method="post" enctype="multipart/form-data">
+      <input type="submit" value="Process Image">
+    </form>
+  </body>
+</html>

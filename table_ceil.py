@@ -7,6 +7,7 @@ from table_line import table_line
 from table_build import tableBuid,to_excel
 from utils import minAreaRectbox, measure, eval_angle, draw_lines
 from chineseocr_lite.test import ChineseOcr
+import pandas as pd
 
 
 class table:
@@ -108,8 +109,11 @@ class table:
                 
         # print(res)
         return res
-
-
+    
+# 前端展示一张图的表格识别
+def to_html(workbook):
+    pass
+    
 if __name__ == '__main__':
     import argparse
     import os
@@ -121,36 +125,69 @@ if __name__ == '__main__':
     parser.add_argument('--tableSize', default='416,416', type=str, help="表格检测输入size")
     parser.add_argument('--tableLineSize', default='1024,1024', type=str, help="表格直线输入size")
     parser.add_argument('--isToExcel', default=False, type=bool, help="是否输出到excel")
+    parser.add_argument('--isToHtml', default=False, type=bool, help="是否输出html")
     parser.add_argument('--folderPath', default='img', type=str, help="图像文件夹路径")
+    parser.add_argument('--jpgPath', default='',type=str, help="测试图像地址")
+    
     args = parser.parse_args()
     args.tableSize = [int(x) for x in args.tableSize.split(',')]
     args.tableLineSize = [int(x) for x in args.tableLineSize.split(',')]
     print(args)
 
-    # 递归获取图像文件路径
-    img_paths = []
-    for root, dirs, files in os.walk(args.folderPath):
-        for file in files:
-            if file.endswith(".jpg") or file.endswith(".png"):
-                img_paths.append(os.path.join(root, file))
+    if args.jpgPath == '':
+        # 递归获取图像文件路径
+        img_paths = []
+        for root, dirs, files in os.walk(args.folderPath):
+            for file in files:
+                if file.endswith(".jpg") or file.endswith(".png"):
+                    img_paths.append(os.path.join(root, file))
 
-    for img_path in img_paths:
-        img = cv2.imread(img_path)
-        t = time.time()
-        tableDetect = table(img,tableSize=args.tableSize,
-                            tableLineSize=args.tableLineSize,
-                            isTableDetect=args.isTableDetect,
-                            isToExcel=args.isToExcel
-                            )
-        tableCeilBoxes = tableDetect.tableCeilBoxes
-        tableJson = tableDetect.res
-        workbook =  tableDetect.workbook
-        img = tableDetect.img
-        tmp = np.zeros_like(img)
-        img = draw_boxes(tmp, tableDetect.tableCeilBoxes, color=(255, 255, 255))
-        print(time.time() - t)
-        pngP = os.path.splitext(img_path)[0]+'ceil.png'
-        cv2.imwrite(pngP, img)
-        if workbook is not None:
-            workbook.save(os.path.splitext(img_path)[0]+'.xls')
+        for img_path in img_paths:
+            img = cv2.imread(img_path)
+            
+            # 边缘锐化增强
+            kernel = np.array([[0, -2, 0], [-2, 9, -2], [0, -2, 0]])
+            img = cv2.filter2D(img, -1, kernel)
+            
+            t = time.time()
+            tableDetect = table(img,tableSize=args.tableSize,
+                                tableLineSize=args.tableLineSize,
+                                isTableDetect=args.isTableDetect,
+                                isToExcel=args.isToExcel
+                                )
+            tableCeilBoxes = tableDetect.tableCeilBoxes
+            tableJson = tableDetect.res
+            workbook =  tableDetect.workbook
+            img = tableDetect.img
+            tmp = np.zeros_like(img)
+            img = draw_boxes(tmp, tableDetect.tableCeilBoxes, color=(255, 255, 255))
+            print(time.time() - t)
+            pngP = os.path.splitext(img_path)[0]+'ceil.png'
+            cv2.imwrite(pngP, img)
+            
+            if workbook is not None:
+                workbook.save(os.path.splitext(img_path)[0]+'.xls')
+    else:
+            img = cv2.imread(args.jpgPath)
+            # 边缘锐化增强
+            kernel = np.array([[0, -2, 0], [-2, 9, -2], [0, -2, 0]])
+            img = cv2.filter2D(img, -1, kernel)
+            t = time.time()
+            tableDetect = table(img,tableSize=args.tableSize,
+                                tableLineSize=args.tableLineSize,
+                                isTableDetect=args.isTableDetect,
+                                isToExcel=args.isToExcel
+                                )
+            tableCeilBoxes = tableDetect.tableCeilBoxes
+            tableJson = tableDetect.res
+            workbook = tableDetect.workbook
+            img = tableDetect.img
+            tmp = np.zeros_like(img)
+            img = draw_boxes(tmp, tableDetect.tableCeilBoxes, color=(255, 255, 255))
+            print(time.time() - t)
+            pngP = os.path.splitext(args.jpgPath)[0]+'ceil.png'
+            cv2.imwrite(pngP, img)
+            if workbook is not None:
+                workbook.save(os.path.splitext(args.jpgPath)[0]+'.xls')
+                    
 

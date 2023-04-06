@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-@author: lywen
-"""
 from .config import *
 import os
 import numpy as np

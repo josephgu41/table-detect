@@ -1,10 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Jan 13 17:31:37 2021
-
-@author: lywen
-"""
 
 
 class tableBuid:
@@ -61,7 +54,6 @@ class tableBuid:
 
 import xlwt
 def to_excel(res, workbook=None):
-    ##res:[{'text': '购 买 方', 'cx': 192.0, 'w': 58.0, 'h': 169.0, 'cy': 325.5, 'angle': 0.0, 'row': [0, 1], 'col': [0, 1]}]
     row = 0
     if workbook is None:
         workbook = xlwt.Workbook()

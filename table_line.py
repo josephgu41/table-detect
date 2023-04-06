@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Sep 9 23:11:51 2020
-table line detect
-@author: chineseocr
-"""
-
 from tensorflow.keras.layers import Input, concatenate, Conv2D, MaxPooling2D, BatchNormalization, UpSampling2D
 from tensorflow.keras.layers import LeakyReLU
 from tensorflow.keras.models import Model

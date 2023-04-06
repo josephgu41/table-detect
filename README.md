@@ -26,6 +26,8 @@ python train/train.py
 
 # 创建环境
 
+依赖：``cuda 10.1``
+
 ```
 conda create --name table-ocr python=3.7
 conda activate table-ocr
