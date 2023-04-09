@@ -81,6 +81,9 @@ def eval_angle(img, angleRange=[-5, 5]):
     """
     估计图片文字的偏移角度
     """
+    if not isinstance(img, np.ndarray):
+        img = np.array(img)
+    
     im = Image.fromarray(img)
     degree = estimate_skew_angle(np.array(im.convert('L')), angleRange=angleRange)
     im = im.rotate(degree, center=(im.size[0] / 2, im.size[1] / 2), expand=1, fillcolor=(255, 255, 255))

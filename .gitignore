@@ -10,7 +10,7 @@
 *.hdf5
 *.weights
 *.traineddata
-dist
+# dist
 buil
 .DS_Store*
 .ipynb_checkpoints

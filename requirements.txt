@@ -9,6 +9,8 @@ scikit-learn
 matplotlib
 scikit-image
 xlwt
+xlrd
+xlutils
 
 # ocr
 opencv-python
@@ -19,6 +21,5 @@ torchvision==0.5.0
 onnxruntime
 pyclipper
 shapely
-flask
-flask-restful
 pandas
+tornado==6.2

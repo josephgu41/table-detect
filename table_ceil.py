@@ -110,9 +110,75 @@ class table:
         # print(res)
         return res
     
-# 前端展示一张图的表格识别
+
+    
+    
+# excel转html表格
 def to_html(workbook):
-    pass
+    import io
+    import xlrd
+    import xlwt
+    from xlutils.copy import copy
+    from xlwt.Utils import rowcol_to_cell
+    
+    
+    output = []
+    # 将 xlwt.Workbook 对象写入内存中的二进制流
+    stream = io.BytesIO()
+    workbook.save(stream)
+
+    # 使用 xlrd.open_workbook() 函数打开内存中的二进制流并返回一个 xlrd.Book 对象
+    stream.seek(0)
+    book = xlrd.open_workbook(file_contents=stream.read())
+
+    # 遍历工作簿中的表格
+    for sheet in book.sheets():
+        output.append('<table>')
+        merged_cells = sheet.merged_cells
+        for row in range(sheet.nrows):
+            output.append('<tr>')
+            for col in range(sheet.ncols):
+                cell_value = sheet.cell_value(row, col)
+                rowspan, colspan = get_merged_cell_range(merged_cells, row, col)
+                if rowspan or colspan:
+                    output.append(f'<td rowspan="{rowspan+1}" colspan="{colspan+1}">{cell_value}</td>')
+                else:
+                    output.append(f'<td>{cell_value}</td>')
+            output.append('</tr>')
+        output.append('</table>')
+    return '\n'.join(output)
+
+
+# 确定单元格是否是合并单元格，并返回其跨度
+def get_merged_cell_range(merged_cells, row, col):
+    for crange in merged_cells:
+        rlo, rhi, clo, chi = crange
+        if row == rlo and col == clo:
+            return rhi - rlo, chi - clo
+    return 0, 0
+    
+# 前端展示一张图的表格识别
+def table_predict(img, short_size=480):
+    import os
+    import time
+
+
+    t = time.time()
+    tableDetect = table(img,tableSize=[416, 416],
+                        tableLineSize=[1024, 1024],
+                        isTableDetect=False,
+                        isToExcel=True
+                        )
+    tableCeilBoxes = tableDetect.tableCeilBoxes
+    tableJson = tableDetect.res
+    workbook = tableDetect.workbook
+    img = tableDetect.img
+    print(time.time() - t)
+    result = ""
+    if workbook is not None:
+        result = to_html(workbook)
+    return result
+        
     
 if __name__ == '__main__':
     import argparse
@@ -127,7 +193,7 @@ if __name__ == '__main__':
     parser.add_argument('--isToExcel', default=False, type=bool, help="是否输出到excel")
     parser.add_argument('--isToHtml', default=False, type=bool, help="是否输出html")
     parser.add_argument('--folderPath', default='img', type=str, help="图像文件夹路径")
-    parser.add_argument('--jpgPath', default='',type=str, help="测试图像地址")
+    parser.add_argument('--jpgPath', default='',type=str, help="单张图像路径")
     
     args = parser.parse_args()
     args.tableSize = [int(x) for x in args.tableSize.split(',')]
@@ -145,9 +211,9 @@ if __name__ == '__main__':
         for img_path in img_paths:
             img = cv2.imread(img_path)
             
-            # 边缘锐化增强
-            kernel = np.array([[0, -2, 0], [-2, 9, -2], [0, -2, 0]])
-            img = cv2.filter2D(img, -1, kernel)
+            # # 边缘锐化增强
+            # kernel = np.array([[0, -2, 0], [-2, 9, -2], [0, -2, 0]])
+            # img = cv2.filter2D(img, -1, kernel)
             
             t = time.time()
             tableDetect = table(img,tableSize=args.tableSize,
@@ -169,9 +235,25 @@ if __name__ == '__main__':
                 workbook.save(os.path.splitext(img_path)[0]+'.xls')
     else:
             img = cv2.imread(args.jpgPath)
-            # 边缘锐化增强
-            kernel = np.array([[0, -2, 0], [-2, 9, -2], [0, -2, 0]])
-            img = cv2.filter2D(img, -1, kernel)
+            
+            # 灰度增强
+            gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            histogram = cv2.calcHist([gray_image],[0],None,[256],[0,256])
+            minimum_pixel_value, maximum_pixel_value, _, _ = cv2.minMaxLoc(gray_image)
+            for i in range(len(histogram)):
+                histogram_value = histogram[i]
+                if i < minimum_pixel_value or i > maximum_pixel_value:
+                    histogram[i] = 0
+                else:
+                    histogram[i] = int(255 * (i - minimum_pixel_value) / (maximum_pixel_value - minimum_pixel_value))
+            img = cv2.LUT(gray_image, histogram)
+            img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+            img = img.astype(np.uint8)
+            
+            # # 边缘锐化增强
+            # kernel = np.array([[0, -2, 0], [-2, 9, -2], [0, -2, 0]])
+            # img = cv2.filter2D(img, -1, kernel)
+            
             t = time.time()
             tableDetect = table(img,tableSize=args.tableSize,
                                 tableLineSize=args.tableLineSize,

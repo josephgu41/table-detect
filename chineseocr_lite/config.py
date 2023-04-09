@@ -51,4 +51,12 @@ angle_model_path = os.path.join(father_path, "models/{}.pth".format(angle_type))
 
 TIMEOUT = 30
 
+# dbnet 参数
+dbnet_max_size = 6000 #长边最大长度
+pad_size = 0 #检测是pad尺寸，有些文档文字充满整个屏幕检测有误，需要pad
+
+max_post_time = 100 # ip 访问最大次数
+
+white_ips = [] #白名单
+
 version = 'api/v1'
