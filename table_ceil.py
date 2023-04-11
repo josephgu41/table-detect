@@ -7,7 +7,6 @@ from table_line import table_line
 from table_build import tableBuid,to_excel
 from utils import minAreaRectbox, measure, eval_angle, draw_lines
 from chineseocr_lite.test import ChineseOcr
-import pandas as pd
 
 
 class table:
@@ -102,10 +101,13 @@ class table:
             if x:
                 txt = ""
                 for i in range(len(x)):
-                    txt = txt + " " + x[i]["text"]
+                    if x[i]["text"]=="一":
+                        txt = txt + " " + "---"
+                    else:
+                        txt = txt + " " + x[i]["text"]
                 res.append(txt[1:])
             else:
-                res.append(" ")
+                res.append("---")
                 
         # print(res)
         return res

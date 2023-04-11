@@ -2,6 +2,7 @@ import onnxruntime as rt
 import numpy as np
 import time
 import cv2
+import torch
 from .decode import SegDetectorRepresenter
 from ..psenet.PSENET import SingletonType
 
@@ -16,49 +17,68 @@ def draw_bbox(img_path, result, color=(255, 0, 0), thickness=2):
     img_path = img_path.copy()
     for point in result:
         point = point.astype(int)
-        
+
         cv2.polylines(img_path, [point], True, color, thickness)
     return img_path
 
 
 class DBNET(metaclass=SingletonType):
-    def __init__(self, MODEL_PATH, short_size=640):
-        self.sess = rt.InferenceSession(MODEL_PATH)
+    def __init__(self, MODEL_PATH, short_size=640, gpu_id=None):
+
+        providers = []
+        if gpu_id is not None and torch.cuda.is_available():
+            try:
+                device_name = f'cuda:{gpu_id}'
+                torch.cuda.set_device(device_name)
+                rt.cuda.set_device(gpu_id)
+                providers = ['CUDAExecutionProvider']
+                print(f"Using GPU {gpu_id} for inference")
+            except Exception as e:
+                print(f"Failed to set GPU device {gpu_id}, falling back to CPU. Error: {e}")
+                providers = ['CPUExecutionProvider']
+                print("Using CPU for inference")
+        else:
+            providers = ['CPUExecutionProvider']
+            print("Using CPU for inference")
+
+        self.sess = rt.InferenceSession(MODEL_PATH, providers=providers)
         self.short_size = short_size
         self.decode_handel = SegDetectorRepresenter()
-    
+
     def process(self, img):
         
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         h, w = img.shape[:2]
-        
+
         if h < w:
             scale_h = self.short_size / h
             tar_w = w * scale_h
             tar_w = tar_w - tar_w % 32
             tar_w = max(32, tar_w)
             scale_w = tar_w / w
-        
+
         else:
             scale_w = self.short_size / w
             tar_h = h * scale_w
             tar_h = tar_h - tar_h % 32
             tar_h = max(32, tar_h)
             scale_h = tar_h / h
-        
+
         img = cv2.resize(img, None, fx=scale_w, fy=scale_h)
-        
+
         img = img.astype(np.float32)
-        
+
         img /= 255.0
         img -= mean
         img /= std
         img = img.transpose(2, 0, 1)
         transformed_image = np.expand_dims(img, axis=0)
-        out = self.sess.run(["out1"], {"input0": transformed_image.astype(np.float32)})
+        out = self.sess.run(
+            ["out1"], {"input0": transformed_image.astype(np.float32)})
         box_list, score_list = self.decode_handel(out[0][0], h, w)
         if len(box_list) > 0:
-            idx = box_list.reshape(box_list.shape[0], -1).sum(axis=1) > 0  # 去掉全为0的框
+            idx = box_list.reshape(
+                box_list.shape[0], -1).sum(axis=1) > 0  # 去掉全为0的框
             box_list, score_list = box_list[idx], score_list[idx]
         else:
             box_list, score_list = [], []
@@ -66,9 +86,11 @@ class DBNET(metaclass=SingletonType):
 
 
 if __name__ == "__main__":
-    text_handle = DBNET(MODEL_PATH="./model/dbnet.onnx")
-    img = cv2.imread("../test_imgs/1.jpg")
-    print(img.shape)
+    from ..config import *
+
+    text_handle = DBNET(MODEL_PATH=model_path)
+    img = cv2.imread("./img/image1.png")
+    # print(img.shape)
     box_list, score_list = text_handle.process(img)
     img = draw_bbox(img, box_list)
-    cv2.imwrite("test.jpg", img)
+    cv2.imwrite("image1_result.png", img)

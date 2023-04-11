@@ -13,7 +13,7 @@ if det_model_type == "pse_mobilenetv2":
     text_detect_net = PSENet(backbone=det_model_type.split("_")[-1], pretrained=False, result_num=6, scale=pse_scale)
     text_handle = PSENetHandel(model_path, text_detect_net, pse_scale, gpu_id=GPU_ID)
 elif det_model_type == "dbnet":
-    text_handle = DBNET(model_path, short_size=dbnet_short_size)
+    text_handle = DBNET(model_path, short_size=dbnet_short_size, gpu_id=GPU_ID)
 
 crnn_net = None
 

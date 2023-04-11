@@ -33,3 +33,7 @@ conda create --name table-ocr python=3.7
 conda activate table-ocr
 pip install -r requirements.txt
 ```
+
+# 模块运行
+
+``python3 -m chineseocr_lite.test``

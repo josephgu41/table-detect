@@ -18,7 +18,8 @@ Cython
 web.py==0.40.dev0
 torch==1.4.0
 torchvision==0.5.0
-onnxruntime
+onnxruntime==1.4
+onnxruntime-gpu==1.4
 pyclipper
 shapely
 pandas
