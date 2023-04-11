@@ -116,7 +116,11 @@ class table:
     
     
 # excel转html表格
-def to_html(workbook):
+def to_html(workbook=None, file_path=None):
+    """ 
+    file_path存在，则代表从文件中读取workbook
+    workbook存在，则代表从内存中读取workbook
+    """
     import io
     import xlrd
     import xlwt
@@ -125,13 +129,21 @@ def to_html(workbook):
     
     
     output = []
-    # 将 xlwt.Workbook 对象写入内存中的二进制流
-    stream = io.BytesIO()
-    workbook.save(stream)
-
-    # 使用 xlrd.open_workbook() 函数打开内存中的二进制流并返回一个 xlrd.Book 对象
-    stream.seek(0)
-    book = xlrd.open_workbook(file_contents=stream.read())
+    merged_cells = None
+    
+    # 如果 file_path 存在，则从文件中读取工作簿
+    if file_path:
+        book = xlrd.open_workbook(file_path)
+    # 如果 workbook 存在，则从内存中读取工作簿
+    elif workbook:
+        # 将 xlwt.Workbook 对象写入内存中的二进制流
+        stream = io.BytesIO()
+        workbook.save(stream)
+        # 使用 xlrd.open_workbook() 函数打开内存中的二进制流并返回一个 xlrd.Book 对象
+        stream.seek(0)
+        book = xlrd.open_workbook(file_contents=stream.read())
+    else:
+        return "未提供有效的工作簿信息"
 
     # 遍历工作簿中的表格
     for sheet in book.sheets():
@@ -178,8 +190,13 @@ def table_predict(img, short_size=480):
     print(time.time() - t)
     result = ""
     if workbook is not None:
-        result = to_html(workbook)
+        result = to_html(workbook=workbook)
     return result
+
+# 将html保存为本地文件
+def save_html_to_file(html_string, file_path):
+    with open(file_path, 'w', encoding='utf-8') as f:
+        f.write(html_string)
         
     
 if __name__ == '__main__':
@@ -235,6 +252,12 @@ if __name__ == '__main__':
             
             if workbook is not None:
                 workbook.save(os.path.splitext(img_path)[0]+'.xls')
+                if args.isToHtml == True:
+                    file_path = os.path.splitext(img_path)[0]
+                    html_string = to_html(file_path=file_path+'.xls')
+                    save_html_to_file(html_string, file_path+'.html')
+                
+                
     else:
             img = cv2.imread(args.jpgPath)
             
@@ -273,5 +296,9 @@ if __name__ == '__main__':
             cv2.imwrite(pngP, img)
             if workbook is not None:
                 workbook.save(os.path.splitext(args.jpgPath)[0]+'.xls')
+                if args.isToHtml == True:
+                    file_path = os.path.splitext(args.jpgPath)[0]
+                    html_string = to_html(file_path=file_path+'.xls')
+                    save_html_to_file(html_string, file_path+'.html')
                     
 
