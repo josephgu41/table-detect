@@ -155,19 +155,24 @@ def table_net(input_shape=(512, 512, 3), num_classes=1):
     return model
 
 
-from config import tableModeLinePath
+from config import tableModeLinePath, gpu_id
 from utils import letterbox_image, get_table_line, adjust_lines, line_to_line
 import numpy as np
 import cv2
+import tensorflow as tf
 
-model = table_net((None, None, 3), 2)
-model.load_weights(tableModeLinePath)
+with tf.device(f'/GPU:{gpu_id}'):
+    # 在此范围内的所有操作将在指定的GPU上运行
+    print(f'loading tf on cuda:{gpu_id}')
+    model = table_net((None, None, 3), 2)
+    model.load_weights(tableModeLinePath)
 
 
 def table_line(img, size=(512, 512), hprob=0.5, vprob=0.5, row=50, col=30, alph=15):
     sizew, sizeh = size
     inputBlob, fx, fy = letterbox_image(img[..., ::-1], (sizew, sizeh))
-    pred = model.predict(np.array([np.array(inputBlob) / 255.0]))
+    with tf.device(f'/GPU:{gpu_id}'):
+        pred = model.predict(np.array([np.array(inputBlob) / 255.0]))
     pred = pred[0]
     vpred = pred[..., 1] > vprob  ##竖线
     hpred = pred[..., 0] > hprob  ##横线

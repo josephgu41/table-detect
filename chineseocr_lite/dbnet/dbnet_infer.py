@@ -24,35 +24,19 @@ def draw_bbox(img_path, result, color=(255, 0, 0), thickness=2):
 
 class DBNET(metaclass=SingletonType):
     def __init__(self, MODEL_PATH, short_size=640, gpu_id=None):
-
-        available_providers = rt.get_available_providers()
-        if gpu_id is not None and torch.cuda.is_available() and 'CUDAExecutionProvider' in available_providers:
-            try:
-                device_name = f'cuda:{gpu_id}'
-                torch.cuda.set_device(device_name)
-                rt.cuda.set_device(gpu_id)
-                self.sess = rt.InferenceSession(MODEL_PATH, providers=['CUDAExecutionProvider'])
-                self.sess.set_providers(['CUDAExecutionProvider'], [{'device_id': str(gpu_id)}])
-                print(f"Using GPU {gpu_id} for inference")
-                print('YESYESYESYESYESYESYESYESYESYESYESYES')
-                print('YESYESYESYESYESYESYESYESYESYESYESYES')
-                print('YESYESYESYESYESYESYESYESYESYESYESYES')
-                print('YESYESYESYESYESYESYESYESYESYESYESYES')
-                print('YESYESYESYESYESYESYESYESYESYESYESYES')
-            except Exception as e:
-                print(f"Failed to set GPU device {gpu_id}, falling back to CPU. Error: {e}")
-                self.sess = rt.InferenceSession(MODEL_PATH, providers=['CPUExecutionProvider'])
-                print("Using CPU for inference")
-        else:
-            self.sess = rt.InferenceSession(MODEL_PATH, providers=['CPUExecutionProvider'])
-            print("Using CPU for inference")
-
-        """ device_name = f'cuda:{gpu_id}'
-        torch.cuda.set_device(device_name)
-        self.sess = rt.InferenceSession(MODEL_PATH, providers=['CUDAExecutionProvider'], provider_options=[{'device_id': str(gpu_id)}])
-        self.sess.set_providers(['CUDAExecutionProvider'], [{'device_id': str(gpu_id)}]) """
         self.short_size = short_size
         self.decode_handel = SegDetectorRepresenter()
+
+        # Check if the specified GPU is available
+        if gpu_id is not None and gpu_id != 'cpu':
+            print(f"Using GPU device {gpu_id}")
+            execution_providers = ['CUDAExecutionProvider', 'CPUExecutionProvider']
+        else:
+            print("Using CPU for inference")
+            execution_providers = ['CPUExecutionProvider']
+            
+        # execution_providers = ['CPUExecutionProvider']
+        self.sess = rt.InferenceSession(MODEL_PATH, providers=execution_providers)
 
     def process(self, img):
         
