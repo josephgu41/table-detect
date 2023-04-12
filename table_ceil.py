@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import cv2
+from PIL import Image
 import numpy as np
 from table_detect import table_detect
 from table_line import table_line
@@ -92,11 +93,10 @@ class table:
             x1, y1, x2, y2 = box[0],box[1],box[2],box[3]
             # 截取表格部分的图片
             table_img = self.img[y1:y2, x1:x2]
+            # cv2.imwrite('./img_temp/cropped.png', table_img)
+            # img = "./img_temp/cropped.png"
+            x = ChineseOcr(table_img)
 
-            cv2.imwrite('./img_temp/cropped.png', table_img)
-            img = "./img_temp/cropped.png"
-        
-            x = ChineseOcr(img)
         
             if x:
                 txt = ""
@@ -230,6 +230,20 @@ if __name__ == '__main__':
         for img_path in img_paths:
             img = cv2.imread(img_path)
             
+            # 灰度增强
+            gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            histogram = cv2.calcHist([gray_image],[0],None,[256],[0,256])
+            minimum_pixel_value, maximum_pixel_value, _, _ = cv2.minMaxLoc(gray_image)
+            for i in range(len(histogram)):
+                histogram_value = histogram[i]
+                if i < minimum_pixel_value or i > maximum_pixel_value:
+                    histogram[i] = 0
+                else:
+                    histogram[i] = int(255 * (i - minimum_pixel_value) / (maximum_pixel_value - minimum_pixel_value))
+            img = cv2.LUT(gray_image, histogram)
+            img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+            img = img.astype(np.uint8)
+            
             # # 边缘锐化增强
             # kernel = np.array([[0, -2, 0], [-2, 9, -2], [0, -2, 0]])
             # img = cv2.filter2D(img, -1, kernel)
@@ -247,15 +261,18 @@ if __name__ == '__main__':
             tmp = np.zeros_like(img)
             img = draw_boxes(tmp, tableDetect.tableCeilBoxes, color=(255, 255, 255))
             print(time.time() - t)
-            pngP = os.path.splitext(img_path)[0]+'ceil.png'
-            cv2.imwrite(pngP, img)
             
+             # 获取文件名和文件后缀
+            filename, extension = os.path.splitext(img_path)
+            # 拼接新的文件路径
+            new_path = os.path.join(os.path.dirname(os.path.dirname(filename)), 'result', os.path.basename(filename))        
+            pngP = new_path+'ceil.png'
+            cv2.imwrite(pngP, img)
             if workbook is not None:
-                workbook.save(os.path.splitext(img_path)[0]+'.xls')
+                workbook.save(new_path+'.xls')
                 if args.isToHtml == True:
-                    file_path = os.path.splitext(img_path)[0]
-                    html_string = to_html(file_path=file_path+'.xls')
-                    save_html_to_file(html_string, file_path+'.html')
+                    html_string = to_html(file_path=new_path+'.xls')
+                    save_html_to_file(html_string, new_path+'.html')
                 
                 
     else:
@@ -292,13 +309,22 @@ if __name__ == '__main__':
             tmp = np.zeros_like(img)
             img = draw_boxes(tmp, tableDetect.tableCeilBoxes, color=(255, 255, 255))
             print(time.time() - t)
-            pngP = os.path.splitext(args.jpgPath)[0]+'ceil.png'
+            
+            # 获取文件名和文件后缀
+            filename, extension = os.path.splitext(args.jpgPath)
+            # 拼接新的文件路径
+            new_path = os.path.join(os.path.dirname(os.path.dirname(filename)), 'result', os.path.basename(filename))
+            print(new_path)         
+            pngP = new_path+'ceil.png'
             cv2.imwrite(pngP, img)
             if workbook is not None:
-                workbook.save(os.path.splitext(args.jpgPath)[0]+'.xls')
+                # workbook.save(os.path.splitext(args.jpgPath)[0]+'.xls')
+                workbook.save(new_path+'.xls')
                 if args.isToHtml == True:
-                    file_path = os.path.splitext(args.jpgPath)[0]
-                    html_string = to_html(file_path=file_path+'.xls')
-                    save_html_to_file(html_string, file_path+'.html')
+                    # file_path = os.path.splitext(args.jpgPath)[0]
+                    # html_string = to_html(file_path=file_path+'.xls')
+                    # save_html_to_file(html_string, file_path+'.html')
+                    html_string = to_html(file_path=new_path+'.xls')
+                    save_html_to_file(html_string, new_path+'.html')
                     
 

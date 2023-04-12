@@ -20,3 +20,5 @@ define
 img/
 train/dataset-line/
 img_temp/
+result/
+data/

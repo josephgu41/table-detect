@@ -21,6 +21,7 @@ elif det_model_type == "dbnet":
 # crnn相关
 nh = 256
 crnn_type = "full_lstm"
+# crnn_type = "lite_lstm"  #"full_lstm"
 
 crnn_vertical_model_path = os.path.join(father_path, "models/crnn_dw_lstm_vertical.pth")
 
