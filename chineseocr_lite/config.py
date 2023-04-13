@@ -3,7 +3,7 @@ import os
 filt_path = os.path.abspath(__file__)
 father_path = os.path.abspath(os.path.dirname(filt_path) + os.path.sep + ".")
 
-GPU_ID = 1 # "cpu"
+GPU_ID = 0 # "cpu"
 
 # psenet相关
 pse_long_size = 320  # 图片长边 960
