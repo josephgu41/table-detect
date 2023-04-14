@@ -155,11 +155,19 @@ def table_net(input_shape=(512, 512, 3), num_classes=1):
     return model
 
 
-from config import tableModeLinePath, gpu_id
+from config import tableModeLinePath, gpu_id, mem_limit
 from utils import letterbox_image, get_table_line, adjust_lines, line_to_line
 import numpy as np
 import cv2
 import tensorflow as tf
+
+# 设置TensorFlow会话配置
+config = tf.compat.v1.ConfigProto()
+config.gpu_options.per_process_gpu_memory_fraction = mem_limit
+
+# 创建TensorFlow会话
+session = tf.compat.v1.Session(config=config)
+
 
 with tf.device(f'/GPU:{gpu_id}'):
     # 在此范围内的所有操作将在指定的GPU上运行
