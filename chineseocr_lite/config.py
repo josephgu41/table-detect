@@ -3,7 +3,7 @@ import os
 filt_path = os.path.abspath(__file__)
 father_path = os.path.abspath(os.path.dirname(filt_path) + os.path.sep + ".")
 
-GPU_ID = 0 # "cpu"
+GPU_ID = "cpu" # "cpu"
 
 # psenet相关
 pse_long_size = 320  # 图片长边 960
@@ -16,7 +16,8 @@ if det_model_type == "pse_mobilenetv2":
     model_path = os.path.join(father_path, "models/psenet_lite_mbv2.pth")
 
 elif det_model_type == "dbnet":
-    model_path = os.path.join(father_path, "models/dbnet.onnx")
+    # model_path = os.path.join(father_path, "models/dbnet.onnx")
+    model_path = os.path.join(father_path, "models/dbnet_optimized.onnx")
 
 # crnn相关
 nh = 256

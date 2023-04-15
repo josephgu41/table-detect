@@ -169,11 +169,27 @@ config.gpu_options.per_process_gpu_memory_fraction = mem_limit
 session = tf.compat.v1.Session(config=config)
 
 
-with tf.device(f'/GPU:{gpu_id}'):
-    # 在此范围内的所有操作将在指定的GPU上运行
-    print(f'loading tf on cuda:{gpu_id}')
-    model = table_net((None, None, 3), 2)
-    model.load_weights(tableModeLinePath)
+# with tf.device(f'/GPU:{gpu_id}'):
+#     # 在此范围内的所有操作将在指定的GPU上运行
+#     print(f'loading tf on cuda:{gpu_id}')
+#     model = table_net((None, None, 3), 2)
+#     model.load_weights(tableModeLinePath)
+# 获取可用的物理设备列表
+physical_devices = tf.config.list_physical_devices('GPU')
+
+# 如果没有可用的GPU，则使用CPU
+if len(physical_devices) == 1:
+    print("No GPU available, using CPU instead.")
+    with tf.device('/CPU:0'):
+        model = table_net((None, None, 3), 2)
+        model.load_weights(tableModeLinePath)
+else:
+    # 指定要使用的GPU ID是否在可用的物理设备列表中
+    print(f'Loading tf on CUDA:{gpu_id}')
+    tf.config.set_visible_devices(physical_devices[int(gpu_id)], 'GPU')
+    with tf.device(f'/GPU:{gpu_id}'):
+        model = table_net((None, None, 3), 2)
+        model.load_weights(tableModeLinePath)
 
 
 def table_line(img, size=(512, 512), hprob=0.5, vprob=0.5, row=50, col=30, alph=15):
