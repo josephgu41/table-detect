@@ -174,11 +174,9 @@ session = tf.compat.v1.Session(config=config)
 #     print(f'loading tf on cuda:{gpu_id}')
 #     model = table_net((None, None, 3), 2)
 #     model.load_weights(tableModeLinePath)
-# 获取可用的物理设备列表
-physical_devices = tf.config.list_physical_devices('GPU')
 
 # 如果没有可用的GPU，则使用CPU
-if len(physical_devices) == 1:
+if gpu_id == "cpu":
     print("No GPU available, using CPU instead.")
     with tf.device('/CPU:0'):
         model = table_net((None, None, 3), 2)
@@ -195,8 +193,12 @@ else:
 def table_line(img, size=(512, 512), hprob=0.5, vprob=0.5, row=50, col=30, alph=15):
     sizew, sizeh = size
     inputBlob, fx, fy = letterbox_image(img[..., ::-1], (sizew, sizeh))
-    with tf.device(f'/GPU:{gpu_id}'):
-        pred = model.predict(np.array([np.array(inputBlob) / 255.0]))
+    if gpu_id == "cpu":
+        with tf.device('/CPU:0'):
+            pred = model.predict(np.array([np.array(inputBlob) / 255.0]))
+    else:
+        with tf.device(f'/GPU:{gpu_id}'):
+            pred = model.predict(np.array([np.array(inputBlob) / 255.0]))
     pred = pred[0]
     vpred = pred[..., 1] > vprob  ##竖线
     hpred = pred[..., 0] > hprob  ##横线
